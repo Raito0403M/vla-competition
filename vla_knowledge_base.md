@@ -34,18 +34,19 @@ VLAは3つの独立した研究の流れが2023年に合流して生まれた。
 
 **VLAへの接続**: BCの枠組みは維持されつつ、Transformerとスケーリングで分布シフトをデータ量と表現力で緩和する方向へ進化。
 
-### 1.2 ロボット基盤モデル
+### 1.2 ロボット制御 × Transformer
 
-| 年 | モデル | 著者・所属 | 核心的貢献 |
-|----|--------|-----------|-----------|
-| 2021 | Decision Transformer | Chen et al. (UC Berkeley) | RLをシーケンスモデリング問題に再定式化 |
-| 2022 | **RT-1** | Brohan et al. (Google) | **大規模実ロボットデータ（13万エピソード）でTransformerを学習**。スケールの有効性を実証。VLAの直接的先行研究 |
-| 2022 | BC-Z | Jang et al. (Google) | 100+タスクでの言語条件付きゼロショット汎化BC |
-| 2022 | CLIPort | Shridhar et al. (UW/NVIDIA) | CLIPの意味理解 + TransporterNetの空間精度を融合。**事前学習済みVLMのロボティクス転用**の先駆 |
-| 2022 | Gato | Reed et al. (DeepMind) | 604タスクを1つのTransformerで学習。「汎用エージェント」の概念を提示 |
-| 2023 | PerAct | Shridhar et al. (UW/NVIDIA) | 3Dボクセル上の言語条件付き6-DoF操作 |
+「ロボットにTransformerを使う」試みから、VLAの直接的土台であるRT-1に至るまでの流れ。
 
-**VLAへの接続**: 大規模データセット + Transformerアーキテクチャの有効性が、VLAの学習基盤に。
+| 年 | 手法 | 著者・所属 | 役割 | 核心的貢献 |
+|----|------|-----------|------|-----------|
+| 2021 | **Decision Transformer** | Chen et al. (UC Berkeley) | **Transformerの導入** | 強化学習をシーケンスモデリング問題に再定式化。Transformerでロボット制御を扱う道を開いた |
+| 2022 | Gato | Reed et al. (DeepMind) | マルチタスク統合 | 604タスクを1つのTransformerで学習。「1モデルで何でもやる」という方向性を提示 |
+| 2022 | BC-Z | Jang et al. (Google) | 言語条件付けBC | 100+タスクでの言語条件付きゼロショット汎化。言語指示でタスクを指定する方向性を開拓 |
+| 2022 | **CLIPort** | Shridhar et al. (UW/NVIDIA) | **VLM→ロボットの橋渡し** | CLIPの意味理解 + TransporterNetの空間精度を融合。**事前学習済みVLMの知識をロボット制御に転用する先駆** |
+| 2022 | **RT-1** | Brohan et al. (Google) | **スケーリングの実証** | **大規模実ロボットデータ（13万エピソード）でTransformerを学習**。スケーリングの有効性を実証。**VLAの直接的な土台**（RT-2はRT-1のデータ + VLMバックボーン） |
+
+**VLAへの接続**: 3つの要素が揃った。(1) Decision TransformerがTransformerで制御問題を解けることを示し、(2) CLIPortが事前学習VLMの知識をロボットに転用できることを実証し、(3) RT-1が大規模データ × Transformerのスケーリングが実ロボットで有効であることを証明した。RT-2はRT-1の延長線上に、VLMバックボーン（PaLI-X）を載せて生まれた。
 
 ### 1.3 Vision-Language モデル（VLM）
 
@@ -99,7 +100,7 @@ VLAは3つの独立した研究の流れが2023年に合流して生まれた。
 | **核心的貢献** | **VLMのWeb知識がロボット制御に転移する**ことを初めて実証。「VLA」という用語を定義 |
 | **限界** | 55Bモデルの推論が遅い（1-3Hz）。非公開で再現不可。離散化による行動精度の損失 |
 
-### 2.2 RT-2-X（2023）— マルチロボットVLA
+### 2.2 RT-X（2023）— マルチロボットVLA
 
 | 項目 | 内容 |
 |------|------|
@@ -346,11 +347,14 @@ VLAの核心的な設計選択。コンペで参加者が直面する技術的�
 
 | データセット | 年 | 規模 | ロボット | 特徴 | URL |
 |-------------|-----|------|---------|------|-----|
-| **Open X-Embodiment** | 2023 | 100万+エピソード | 22種類のロボット | 21機関のデータを統合。最大規模。RT-2-Xの学習に使用 | [公式](https://robotics-transformer-x.github.io/) |
+| **Open X-Embodiment** | 2023 | 100万+エピソード | 22種類のロボット | 21機関のデータを統合。最大規模。RT-2-Xの学習に使用 | [公式](https://robotics-transformer-x.github.io/) |　（こいつを細分化したほうがいい気がする）
 | **Bridge Data V2** | 2023 | 60,096軌道 | WidowX | 24環境、13ロボット。UCBerkeley。オープンソースの代表格 | [公式](https://rail-berkeley.github.io/bridgedata/) |
 | **DROID** | 2024 | 76,000デモ | Franka Emika Panda | 分散収集（複数機関）。350シーン、多様な操作タスク | [公式](https://droid-dataset.github.io/) |
 | **RoboSet** | 2023 | 100,000+軌道 | Franka | マルチスキル（pick, place, wipeなど）。MIT | [公式](https://robopen.github.io/) |
 | **RoboNet** | 2019 | 15,000+時間 | 7ロボット | 複数機関からのビデオデータ収集の先駆け | UC Berkeley |
+
+他のデータセットももう少し調べたほうがいいよね
+例えばAGIbotとか
 
 ### コンペ運営者として知っておくべきこと
 - Open X-Embodiment は**データ品質が不均一**（機関によって収集方法・品質がバラバラ）
@@ -442,9 +446,6 @@ openpi/
 - 対象物体を除去しても同じ軌道 → **視覚知覚もしていない**
 - サブタスク合成（A→B）で完全失敗 → **因果理解がない**
 
-**Sim2Real Gap**:
-- シミュレーションの画像品質・物理特性が実世界と異なる
-- SIMPLERが近似評価を試みているが、完全な解決には至っていない
 
 **Compositional Generalization**:
 - 個々のスキルは学習できるが、組み合わせると崩壊する
