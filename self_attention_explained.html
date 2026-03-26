@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Self-Attentionの仕組みを直観と数式と手計算で理解する</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ]
+  });"></script>
+<style>
+  body {
+    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    line-height: 1.85;
+    color: #1a1a1a;
+    background: #fafafa;
+  }
+  h1 {
+    font-size: 1.7rem;
+    border-bottom: 3px solid #2563eb;
+    padding-bottom: 0.5rem;
+    margin-top: 2rem;
+  }
+  h2 {
+    font-size: 1.35rem;
+    color: #2563eb;
+    margin-top: 2.5rem;
+    border-left: 4px solid #2563eb;
+    padding-left: 0.7rem;
+  }
+  h3 {
+    font-size: 1.1rem;
+    color: #1e40af;
+    margin-top: 1.8rem;
+  }
+  .katex-display {
+    overflow-x: auto;
+    padding: 0.5rem 0;
+  }
+  ul, ol {
+    padding-left: 1.5rem;
+  }
+  li {
+    margin-bottom: 0.4rem;
+  }
+  strong {
+    color: #1e40af;
+  }
+  .highlight-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+  }
+  .key-point {
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    padding: 0.8rem 1rem;
+    margin: 1rem 0;
+    border-radius: 0 6px 6px 0;
+  }
+  code {
+    background: #e5e7eb;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+  table {
+    border-collapse: collapse;
+    margin: 1rem auto;
+  }
+  td, th {
+    border: 1px solid #d1d5db;
+    padding: 0.4rem 0.8rem;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>Self-Attentionの仕組みを直観と数式と手計算で理解する</h1>
+
+<h2>Self-Attentionがやっていることの核心</h2>
+
+<p>Self-Attention（自己注意）は、各トークンが「列全体のどこを参照すべきか」を自分で決め、その参照結果を取り込んで<strong>"文脈化（contextualize）された表現"</strong>に更新する仕組みです。Transformerの元論文では、Attention関数を「Query と Key-Value の集合を入力に取り、Valueの重み付き和を出力する写像」として定義しています。重み（どのValueをどれだけ見るか）は、QueryとKeyの"相性（compatibility）"で決まります。</p>
+
+<p>Scaled Dot-Product Attention（Transformerで基本形として広く使われる注意）の式は次です。</p>
+
+$$\mathrm{Attention}(Q,K,V)=\mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
+
+<div class="key-point">
+ここで重要なのは「<strong>(1) 類似度っぽいスコアを作る → (2) softmaxで重みにする → (3) Valueを重み付き和で混ぜる</strong>」という3段です。
+</div>
+
+<h2>Query・Key・Valueの直感的な意味</h2>
+
+<p>Attentionの見方として一番ブレにくいのは、<strong>「検索クエリと索引」</strong>の比喩です（この比喩自体も、元論文の"query と key-value pairs"という定義と相性が良いです）。</p>
+
+<ul>
+  <li><strong>Query（Q）</strong>: いま更新したいトークンが「私は何を探している？」を表す"検索条件"</li>
+  <li><strong>Key（K）</strong>: 各トークンが「私はこういう情報を持っているよ」という"索引（タグ）"</li>
+  <li><strong>Value（V）</strong>: 実際に"取り込みたい中身（コンテンツ）"</li>
+</ul>
+
+<p>同じ入力トークン埋め込み $x_i$ から、3つの線形変換で $q_i, k_i, v_i$ を作ります（学習される行列がそれぞれ別）。多くの実装では次の形です。</p>
+
+$$q_i = x_i W_Q,\quad k_i = x_i W_K,\quad v_i = x_i W_V$$
+
+<div class="highlight-box">
+<p>ここで直感的に大事なのは次です。</p>
+<ul>
+  <li>$W_Q$ は「<strong>探し方</strong>（どんな軸で"欲しい"を表すか）」を学習する</li>
+  <li>$W_K$ は「<strong>索引の付け方</strong>（どんな軸で"持っている"を表すか）」を学習する</li>
+  <li>$W_V$ は「<strong>実際に渡す中身</strong>（混ぜる特徴）」を学習する</li>
+</ul>
+<p>つまり、Self-Attentionは単に"トークン同士の内積"を取っているのではなく、学習された別々の投影空間で「探す軸」「タグ付けの軸」「持ち運ぶ中身の軸」を分けています。</p>
+</div>
+
+<h2>内積→Softmax→加重和が「情報を取り込む」に対応する理由</h2>
+
+<h3>内積で「類似度」を測れる理由</h3>
+
+<p>内積（dot product）は幾何学的には</p>
+
+$$\mathbf{a}\cdot\mathbf{b}=|\mathbf{a}||\mathbf{b}|\cos\theta$$
+
+<p>で、ベクトルの向きが揃うほど（$\theta$ が小さいほど）大きくなります。</p>
+
+<p>さらに長さで正規化すると cosine similarity になり、「角度だけ」で似ているかを測れます。</p>
+
+<p>Attentionで内積が"相性スコア"として便利なのは、次の2点が大きいです。</p>
+<ul>
+  <li><strong>計算が高速</strong>：行列積 $QK^\top$ に落ちるのでGPUで非常に効率よく計算できる（実装面で強い）。</li>
+  <li><strong>表現学習と相性がいい</strong>：学習によって、欲しい相手に対して $q_i$ と $k_j$ が同じ方向を向く（＝内積が大きくなる）ように調整できる。</li>
+</ul>
+
+<h3>$\sqrt{d_k}$ で割る理由</h3>
+
+<p>元論文・注釈付き実装のどちらも、「$d_k$ が大きいと内積が大きくなり、softmaxが飽和して勾配が小さくなるのでスケールする」と説明しています。</p>
+
+<p>注釈付き実装ではさらに、成分が平均0・分散1の独立変数だとすると</p>
+
+$$q\cdot k=\sum_{i=1}^{d_k} q_i k_i$$
+
+<p>の分散が $d_k$ で増える、という"分散スケール"の直感まで明示しています。</p>
+
+<p>だから $\sqrt{d_k}$ で割って「softmaxに入る値のスケール」を安定させ、学習をしやすくします。</p>
+
+<h3>Softmaxで重みに変換する理由</h3>
+
+<p>softmaxは任意の実数ベクトルを、要素が $(0,1)$ で総和が1の"確率分布っぽいもの"に変換します。</p>
+
+<p>Transformerのattentionでは、まさに「各Keyに対する重み」を作る工程として softmax を使います。</p>
+
+<p>softmaxを使う理由を、実務的に効く順に言い換えると：</p>
+<ol>
+  <li><strong>重みが正になり、和が1になる</strong>：出力が Value の<strong>凸結合（weighted average）</strong>になり、スケールが暴れにくい。</li>
+  <li><strong>"勝者を強調"する</strong>：スコア差があると指数で差が広がり、「どれを見るか」を鋭く選びやすい（温度パラメータ的な挙動もある）。</li>
+  <li><strong>微分可能</strong>：argmaxのように"選ぶ"動作を滑らかに近似でき、誤差逆伝播で学習できる。</li>
+</ol>
+
+<h3>加重和で「情報を取り込む」とはどういうことか</h3>
+
+<p>元論文は「出力はValueの重み付き和」と明確に述べています。</p>
+
+<p>この "重み付き和" の意味は次です。</p>
+<ul>
+  <li>各トークン $i$ は、他トークン $j$ の Value $v_j$ を 重み $\alpha_{ij}$ だけ足し合わせて、新しい表現 $y_i$ を作る</li>
+  <li>$\alpha_{ij}$ が大きいほど、トークン $j$ の情報がトークン $i$ の表現に強く混ざる</li>
+  <li>結果として $y_i$ は「列全体を見た上での要約（ただし要約の作り方はQueryが決める）」になる</li>
+</ul>
+
+<div class="key-point">
+この操作は、<strong>"どの相手から情報をコピー／ブレンドするか"を学習する</strong>と捉えると直観が安定します。
+</div>
+
+<h2>3トークンの具体例を最初から最後まで手計算する</h2>
+
+<p>ここからは、3トークン・2次元で Q,K,Vの行列要素を全部明示し、Scaled Dot-Product Attentionを最後まで計算します（少数は四捨五入します）。</p>
+
+<h3>Step 1: 入力と重み行列を決める</h3>
+
+<p>トークン数 $T=3$、埋め込み次元 $d_\text{model}=2$ とします。入力埋め込み（各トークンのベクトル）を行として並べます。</p>
+
+$$X= \begin{bmatrix} 1 & 0\\ 0 & 1\\ 1 & 1 \end{bmatrix}$$
+
+<p>学習される重み行列の"例"として、計算しやすい整数行列を置きます（実モデルでは学習でこの値が決まります）。</p>
+
+$$W_Q= \begin{bmatrix} 1 & 0\\ 1 & 1 \end{bmatrix},\quad W_K= \begin{bmatrix} 1 & 1\\ 0 & 1 \end{bmatrix},\quad W_V= \begin{bmatrix} 2 & 0\\ 0 & 1 \end{bmatrix}$$
+
+<h3>Step 2: Q, K, V を計算する</h3>
+
+$$Q=XW_Q,\quad K=XW_K,\quad V=XW_V$$
+
+<p>実際に掛け算します。</p>
+
+<p><strong>Q の計算:</strong></p>
+
+$$Q= \begin{bmatrix} 1 & 0\\ 0 & 1\\ 1 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0\\ 1 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 0\\ 1 & 1\\ 2 & 1 \end{bmatrix}$$
+
+<p><strong>K の計算:</strong></p>
+
+$$K= \begin{bmatrix} 1 & 0\\ 0 & 1\\ 1 & 1 \end{bmatrix} \begin{bmatrix} 1 & 1\\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 1\\ 0 & 1\\ 1 & 2 \end{bmatrix}$$
+
+<p><strong>V の計算:</strong></p>
+
+$$V= \begin{bmatrix} 1 & 0\\ 0 & 1\\ 1 & 1 \end{bmatrix} \begin{bmatrix} 2 & 0\\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 2 & 0\\ 0 & 1\\ 2 & 1 \end{bmatrix}$$
+
+<div class="highlight-box">
+ここまでで、「同じ入力 $X$ から、別々の線形変換で $Q, K, V$ を作っている」が手で見える形になります。
+</div>
+
+<h3>Step 3: 類似度スコア $QK^\top$ を作る</h3>
+
+<p>各Queryと各Keyの内積を並べます（3×3行列）。</p>
+
+$$S = QK^\top$$
+
+<p>まず $K^\top$ を書きます。</p>
+
+$$K^\top= \begin{bmatrix} 1 & 0 & 1\\ 1 & 1 & 2 \end{bmatrix}$$
+
+<p>したがって</p>
+
+$$S= \begin{bmatrix} 1 & 0\\ 1 & 1\\ 2 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 & 1\\ 1 & 1 & 2 \end{bmatrix} = \begin{bmatrix} 1 & 0 & 1\\ 2 & 1 & 3\\ 3 & 1 & 4 \end{bmatrix}$$
+
+<p>この $S_{ij}$ が「トークン $i$ のQueryと、トークン $j$ のKeyの相性（内積）」です。</p>
+
+<h3>Step 4: $\sqrt{d_k}$ でスケーリングする</h3>
+
+<p>今回は $d_k=2$（Query/Keyの次元）なので $\sqrt{2}\approx1.414$ で割ります。</p>
+
+$$\tilde{S} = \frac{S}{\sqrt{2}} = \begin{bmatrix} 0.707 & 0 & 0.707\\ 1.414 & 0.707 & 2.121\\ 2.121 & 0.707 & 2.828 \end{bmatrix}$$
+
+<h3>Step 5: 行ごとにsoftmaxして重み行列 $A$ を作る</h3>
+
+$$A = \mathrm{softmax}(\tilde{S})$$
+
+<p>softmaxは<strong>"行ごと（各Queryごと）"</strong>にかけます。手計算しやすいよう、各行で最大値を引いてから指数を取ります（softmaxは平行移動に不変なのでOK）。</p>
+
+<p><strong>行1：</strong>$[0.707,\; 0,\; 0.707]$</p>
+<ul>
+  <li>最大 $0.707$ を引く → $[0,\; -0.707,\; 0]$</li>
+  <li>$\exp(0)=1$, $\exp(-0.707)\approx0.492$</li>
+  <li>和 $=1+0.492+1=2.492$</li>
+  <li>$A_{1,*}\approx[0.401,\; 0.198,\; 0.401]$</li>
+</ul>
+
+<p><strong>行2：</strong>$[1.414,\; 0.707,\; 2.121]$</p>
+<ul>
+  <li>最大 $2.121$ を引く → $[-0.707,\; -1.414,\; 0]$</li>
+  <li>$\exp(-0.707)\approx0.492$, $\exp(-1.414)\approx0.243$, $\exp(0)=1$</li>
+  <li>和 $=0.492+0.243+1=1.735$</li>
+  <li>$A_{2,*}\approx[0.284,\; 0.140,\; 0.576]$</li>
+</ul>
+
+<p><strong>行3：</strong>$[2.121,\; 0.707,\; 2.828]$</p>
+<ul>
+  <li>最大 $2.828$ を引く → $[-0.707,\; -2.121,\; 0]$</li>
+  <li>$\exp(-0.707)\approx0.492$, $\exp(-2.121)\approx0.120$, $\exp(0)=1$</li>
+  <li>和 $=0.492+0.120+1=1.612$</li>
+  <li>$A_{3,*}\approx[0.306,\; 0.074,\; 0.620]$</li>
+</ul>
+
+<p>まとめると</p>
+
+$$A\approx \begin{bmatrix} 0.401 & 0.198 & 0.401\\ 0.284 & 0.140 & 0.576\\ 0.306 & 0.074 & 0.620 \end{bmatrix}$$
+
+<div class="key-point">
+各行の和が1になっている＝「どのValueをどれだけ混ぜるか」の配分になっています。
+</div>
+
+<h3>Step 6: 出力 $Y=AV$ を計算する（＝情報を取り込む）</h3>
+
+<p>最後に</p>
+
+$$Y = AV$$
+
+$$V= \begin{bmatrix} 2 & 0\\ 0 & 1\\ 2 & 1 \end{bmatrix}$$
+
+<p>各行を「Valueの重み付き和」として計算します。</p>
+
+<p><strong>トークン1の出力 $y_1$:</strong></p>
+
+$$y_1 =0.401\begin{bmatrix}2\\0\end{bmatrix} +0.198\begin{bmatrix}0\\1\end{bmatrix} +0.401\begin{bmatrix}2\\1\end{bmatrix} = \begin{bmatrix} 1.604\\ 0.599 \end{bmatrix}$$
+
+<p><strong>トークン2の出力 $y_2$:</strong></p>
+
+$$y_2 =0.284\begin{bmatrix}2\\0\end{bmatrix} +0.140\begin{bmatrix}0\\1\end{bmatrix} +0.576\begin{bmatrix}2\\1\end{bmatrix} = \begin{bmatrix} 1.720\\ 0.716 \end{bmatrix}$$
+
+<p><strong>トークン3の出力 $y_3$:</strong></p>
+
+$$y_3 =0.306\begin{bmatrix}2\\0\end{bmatrix} +0.074\begin{bmatrix}0\\1\end{bmatrix} +0.620\begin{bmatrix}2\\1\end{bmatrix} = \begin{bmatrix} 1.851\\ 0.694 \end{bmatrix}$$
+
+<p>よって</p>
+
+$$Y\approx \begin{bmatrix} 1.604 & 0.599\\ 1.720 & 0.716\\ 1.851 & 0.694 \end{bmatrix}$$
+
+<div class="highlight-box">
+この段階で「加重和＝相手のValueを自分の表現へブレンドして取り込む」が、行列の各要素として追えるはずです。元論文が言う "output is a weighted sum of the values" を、そのまま手で再現した形です。
+</div>
+
+<h2>因果的Self-AttentionとCross-Attentionの違いを数式と数値で掴む</h2>
+
+<p>ここでは、</p>
+<ul>
+  <li>「Encoderが双方向、Decoderが因果的」</li>
+  <li>「Cross-AttentionでQ,K,Vがどこから来る？」</li>
+</ul>
+<p>を、同じ流儀（手計算）で繋げます。</p>
+
+<h3>因果的Self-Attentionで何が変わるか</h3>
+
+<p>DecoderのSelf-Attentionは「未来トークンを見てはいけない」ので、softmaxの入力（スコア）にマスクを入れます。元論文は、scaled dot-product attention の softmax 入力で illegal connection を $-\infty$ に落とす、と書いています。</p>
+
+<p>3トークンなら、許可される参照は「自分より左（過去）だけ」です。</p>
+
+<ul>
+  <li>位置1は $\{1\}$</li>
+  <li>位置2は $\{1,2\}$</li>
+  <li>位置3は $\{1,2,3\}$</li>
+</ul>
+
+<p>マスク行列（許可=1、禁止=0）を</p>
+
+$$M= \begin{bmatrix} 1&0&0\\ 1&1&0\\ 1&1&1 \end{bmatrix}$$
+
+<p>とすると、$\tilde{S}$ の禁止セルを $-\infty$ に置き換えて softmax します。</p>
+
+<p>さっきの $\tilde{S}$ を使うと：</p>
+
+<p><strong>行1：</strong>$[0.707,\;-\infty,\;-\infty]$ → softmax = $[1,\;0,\;0]$</p>
+
+<p><strong>行2：</strong>$[1.414,\;0.707,\;-\infty]$</p>
+<ul>
+  <li>最大1.414を引く → $[0,\;-0.707,\;-\infty]$</li>
+  <li>exp → $[1,\;0.492,\;0]$</li>
+  <li>正規化 → $[0.670,\;0.330,\;0]$</li>
+</ul>
+
+<p><strong>行3</strong>は元々全許可なので前と同じ $[0.306,\;0.074,\;0.620]$</p>
+
+<p>よって</p>
+
+$$A_\text{causal}\approx \begin{bmatrix} 1 & 0 & 0\\ 0.670 & 0.330 & 0\\ 0.306 & 0.074 & 0.620 \end{bmatrix}$$
+
+<p>出力は $Y_\text{causal}=A_\text{causal}V$ で、</p>
+
+<ul>
+  <li>$y_1=[2,\;0]$（自分しか見ない）</li>
+  <li>$y_2=0.670[2,\;0]+0.330[0,\;1]=[1.340,\;0.330]$</li>
+  <li>$y_3$ は前と同じ $[1.851,\;0.694]$</li>
+</ul>
+
+<div class="key-point">
+「未来情報が遮断される」ことが、<strong>重み行列のゼロ</strong>として見えるはずです。
+</div>
+
+<h3>Cross-AttentionでQ, K, Vはどこから来るか</h3>
+
+<p>Cross-Attention（encoder-decoder attention）について元論文は非常に明快で、</p>
+<ul>
+  <li><strong>Query</strong>は decoder 側（前のdecoder層の出力）から</li>
+  <li><strong>Key と Value</strong> は encoder の出力（memory）から</li>
+</ul>
+<p>と書いています。</p>
+
+<p>式だけ書けば、</p>
+
+$$\mathrm{CrossAttn}(Q_\text{dec},K_\text{enc},V_\text{enc}) = \mathrm{softmax}\!\left(\frac{Q_\text{dec}K_\text{enc}^\top}{\sqrt{d_k}}\right)V_\text{enc}$$
+
+<h3>数値ミニ例</h3>
+
+<p>encoder側の $K_\text{enc}, V_\text{enc}$ は先ほどの $K, V$ を流用します。</p>
+
+$$K_\text{enc}= \begin{bmatrix} 1 & 1\\ 0 & 1\\ 1 & 2 \end{bmatrix},\quad V_\text{enc}= \begin{bmatrix} 2 & 0\\ 0 & 1\\ 2 & 1 \end{bmatrix}$$
+
+<p>decoder側に2トークンあるとして、Query（すでにdecoder内部で計算されたもの）が次だとします：</p>
+
+$$Q_\text{dec}= \begin{bmatrix} 1 & 1\\ 0 & 1 \end{bmatrix}$$
+
+<p>スコアは</p>
+
+$$S_\text{cross}=Q_\text{dec}K_\text{enc}^\top = \begin{bmatrix} 2 & 1 & 3\\ 1 & 1 & 2 \end{bmatrix}$$
+
+<p>スケールして（$\sqrt{2}$ で割る）softmaxすると、重みは概算で</p>
+
+$$A_\text{cross}\approx \begin{bmatrix} 0.284 & 0.140 & 0.576\\ 0.248 & 0.248 & 0.503 \end{bmatrix}$$
+
+<p>出力は</p>
+
+$$Y_\text{cross}=A_\text{cross}V_\text{enc} \approx \begin{bmatrix} 1.720 & 0.716\\ 1.503 & 0.752 \end{bmatrix}$$
+
+<div class="highlight-box">
+ここでのポイントは、<strong>decoderトークンが「encoderメモリ（画像＋入力テキストの表現）」のどこを読むかを Cross-Attention が決めている</strong>、ということです。
+</div>
+
+<h2>学習される仕組みとMulti-Head・位置埋め込みが必要な理由</h2>
+
+<h3>Q, K, V の重み行列はどう学習されるのか</h3>
+
+<p>Multi-Head Attentionの式では、各headに $W^Q_i, W^K_i, W^V_i$ というパラメータ行列があり、これらが学習対象であることが明示されています。</p>
+
+<p>学習の流れは（Transformer一般として）概念的にこうなります。</p>
+<ol>
+  <li>モデルは（decoderなら）次トークン確率を softmaxで出す</li>
+  <li>正解トークンとの誤差（典型的にはクロスエントロピー）を計算</li>
+  <li>その損失から誤差逆伝播で勾配が流れ、Attention内の $W_Q, W_K, W_V$ も更新される</li>
+</ol>
+
+<p>「Attention重みが学習でどう変わるか」の最小形を1トークン分だけ式で見ると分かりやすいです。</p>
+
+<p>ある位置 $i$ の出力</p>
+
+$$y_i=\sum_j \alpha_{ij} v_j,\quad \alpha_{i,\cdot}=\mathrm{softmax}(s_{i,\cdot})$$
+
+<p>ここで $s_{ij}=\dfrac{q_i\cdot k_j}{\sqrt{d_k}}$</p>
+
+<p>損失 $L$ の勾配 $g_i=\dfrac{\partial L}{\partial y_i}$ を使うと、softmaxと加重和の連鎖から次が出ます（導出はsoftmaxの勾配公式から）。</p>
+
+$$\frac{\partial L}{\partial s_{ij}} = \alpha_{ij}\Bigl(g_i\cdot (v_j - y_i)\Bigr)$$
+
+<div class="highlight-box">
+<p>この式の直観は強いです：</p>
+<ul>
+  <li>もし $v_j$ が「損失を下げる方向」（$g_i$ と同じ方向）に寄与するなら、$\dfrac{\partial L}{\partial s_{ij}}$ はその $s_{ij}$ を"上げる"ように働く</li>
+  <li>すると $q_i$ と $k_j$ の内積が増える（＝相性が上がるように）</li>
+  <li><strong>つまり学習は「欲しいValueを出してくれるKeyとQueryを、内積が大きくなる向きに整列させる」方向に進む</strong></li>
+</ul>
+</div>
+
+<p>そして $q_i=x_iW_Q$ なので、勾配は $W_Q$ にも流れます（行列積の勾配）：</p>
+
+$$\frac{\partial L}{\partial W_Q}=X^\top \frac{\partial L}{\partial Q}$$
+
+<p>同様に $W_K, W_V$ も更新されます。要するに <strong>「Attentionは学習で"見るべき相手"を作り込む」</strong> のが本質です。</p>
+
+<h3>Multi-Head Attentionとは何か、なぜ必要か</h3>
+
+<p>Multi-Head Attentionは、同じ入力から複数組の $(Q,K,V)$ を作って並列にattentionし、結果を結合して出力します。定義は次です。</p>
+
+$$\mathrm{MultiHead}(Q,K,V)=\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)W^O$$
+
+$$\mathrm{head}_i=\mathrm{Attention}(QW_i^Q,\;KW_i^K,\;VW_i^V)$$
+
+<p>必要性は元論文・注釈付き実装の表現のまま言うと：</p>
+<ul>
+  <li>「異なる表現部分空間（representation subspaces）に同時に注意を向けられる」</li>
+  <li>1ヘッドだけだと平均化が起きて阻害される</li>
+</ul>
+
+<p>直観的には<strong>「同じトークン列でも、見るべき関係は複数ある」</strong>からです。</p>
+<ul>
+  <li>言語なら（例）係り受け・照応・語彙的類似・文脈上の役割。</li>
+  <li>画像パッチなら（例）形状の連続性・同一物体の別パーツ・テキスト領域（OCR）・背景除去、など。ViT/PaLI-X系が大規模で強いのは、まさにこの"複数の関係を同時に持てる"点が効きやすいです。</li>
+</ul>
+
+<h3>2ヘッドの超ミニ数値例（構造の理解用）</h3>
+
+<p>さっきの $X$ をそのまま使い、各ヘッドが「別の次元だけを見る」ようにします（実際は学習でこういう分解が"勝手に"起きるイメージ）。</p>
+
+<ul>
+  <li>head1：第1次元だけを見る</li>
+  <li>head2：第2次元だけを見る</li>
+</ul>
+
+<p>すると headごとに 重みの付き方（attentionパターン）が変わることが手計算でも確認できます（head1はトークン1と3を強く結び、head2はトークン2と3を強く結ぶ、など）。この<strong>"異なる結び方を並列に持つ"</strong>のが Multi-Head の要点です。</p>
+
+<h3>位置埋め込みがなぜ必要か</h3>
+
+<p>Transformerは畳み込みや再帰がないので、Self-Attention単体だと系列の順序（語順・時系列・画像パッチの位置）を自動では持てません。そのため元論文は「順序を使えるように位置情報を注入する必要がある」と述べています。</p>
+
+<p>この「位置情報がないと困る」をもう少し構造的に言うと：</p>
+<ul>
+  <li>Self-Attentionの基本式（位置情報なし）は、入力トークンを並べ替えると出力も同じように並べ替わる（順序そのものを識別できない）という性質を持ちやすい</li>
+  <li>だから語順が意味を変えるタスクでは、位置を入れないと区別できない</li>
+</ul>
+
+<p>位置の入れ方は色々ありますが、基本は</p>
+
+$$\text{入力} = \text{token embedding} + \text{positional encoding}$$
+
+<p>です。</p>
+
+<p>ViTでも同じで、画像をパッチ列にして線形埋め込みにした後、位置埋め込みを足してTransformer encoderに入れます（論文中で「positional informationを保持するため」と明記）。</p>
+
+<h2>RT-2のPaLI-XでEncoderとDecoderに何が起きているか</h2>
+
+<p>最後に、ここまでのSelf-Attention理解をそのまま PaLI-X（そしてRT-2）に貼り付けて終えます。</p>
+
+<h3>PaLI-XのEncoderは「双方向Self-Attentionで全部を一度に混ぜる」</h3>
+
+<p>PaLI-Xは encoder-decoder 構成で、入力画像はまずViTで処理されて視覚埋め込み（visual embeddings）になります。さらにテキスト入力（質問・プロンプト等）の埋め込みと一緒に encoder-decoder バックボーンへ渡されます。</p>
+
+<p>PaLI-Xの記述では、visual embeddings を投影した後に text token embeddings と連結し、それを encoder-decoder backbone に入力します。</p>
+
+<div class="highlight-box">
+つまり encoder に入る系列は（概念的に）：
+<ol>
+  <li>画像（1枚以上）→ ViT → 画像トークン列</li>
+  <li>テキスト→ token embedding → テキストトークン列</li>
+  <li>連結して「長い1本の系列」として encoder に投入</li>
+</ol>
+</div>
+
+<p>Encoder内部では、各層で <strong>双方向Self-Attention</strong>が動作します（未来を隠す理由がないのでマスクなし）。その結果、各トークン（画像パッチでもテキストでも）が「系列全体（画像＋テキスト）」から必要情報を加重和で取り込んだ表現に更新されます。</p>
+
+<h3>PaLI-XのDecoderは「因果的Self-Attentionで生成しつつ、Cross-AttentionでEncoderを読む」</h3>
+
+<p>PaLI-Xは decoder が autoregressive（自己回帰）に出力トークンを予測すると説明しています。</p>
+
+<p>このとき decoder には2種類のattentionが入ります（Transformer原型と同じ）：</p>
+<ol>
+  <li><strong>因果的Self-Attention</strong>：生成済みトークン（左側）だけを見て次トークンを決める（未来マスクが必要）</li>
+  <li><strong>Cross-Attention</strong>：Queryはdecoder側、Key/Valueはencoder出力（画像＋入力テキストの文脈化表現）</li>
+</ol>
+
+<p>PaLI-Xの図中にも decoder の "Cross Attention" が明示されており、この構造で「出力を生成しながら入力（画像＋プロンプト）に条件づける」ことになります。</p>
+
+<h3>RT-2で何が同じで、何が追加されるか</h3>
+
+<p>RT-2論文が提案するレシピの中核は、「ロボット行動をテキストトークンとして表現し、VLMの学習形式（テキスト生成）にそのまま載せる」ことです。</p>
+
+<p>したがって attention の観点では、RT-2で起きていることはかなり素直に言えます：</p>
+<ol>
+  <li>PaLI-X型の encoder-decoder で、encoderは（画像＋命令文など）を<strong>双方向Self-Attention</strong>で文脈化</li>
+  <li>decoderは<strong>因果的Self-Attention＋Cross-Attention</strong>で出力列を生成</li>
+  <li>その出力列の一部（または全部）が「自然言語」ではなく<strong>「行動トークン」</strong>になっている</li>
+</ol>
+
+<div class="key-point">
+参考として、RT-1は blog 側の説明で「decoder-only sequence model に近い」ことと「causal masking」を明記しています。RT-2は"より大きいVLMバックボーンを、行動トークン生成に拡張したもの"と捉えると、Self-Attention理解がそのまま接続しやすくなります。
+</div>
+
+</body>
+</html>

@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>vla_history.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h2 id="1-%E5%89%8D%E5%8F%B2-vla-%E3%81%AF%E3%81%A9%E3%81%86%E3%82%84%E3%81%A3%E3%81%A6%E7%94%9F%E3%81%BE%E3%82%8C%E3%81%9F%E3%81%8B">1. 前史: VLA はどうやって生まれたか</h2>
+<p>RT-2（2023.07）が「VLA（Vision-Language-Action model）」という用語を定義し、その最初の実装を示した。RT-2の設計は<strong>2つの独立した系譜の合成</strong>である：</p>
+<ol>
+<li><strong>ロボット学習プロトコルとデータ（RT-1起点）</strong> — 行動の離散化（256bin）、大規模デモデータ（13万エピソード）、評価プロトコル。RT-2はこれらをRT-1から継承した</li>
+<li><strong>Web規模の事前学習済みVLM（PaLI-X / PaLM-E起点）</strong> — RT-2は既存VLMを出発点に、行動をテキストトークンとして出力させることで、VLMのWeb知識を低レベルロボット制御に直接転用した</li>
+</ol>
+<p>RT-2の核心的イノベーションは「行動のトークン化（action tokenization）」— ロボットの連続行動をVLMのトークナイザに載る文字列として表現し、VLMの自然言語出力と同じ枠組みで行動を生成させたこと。さらに、ロボットデモデータとWebのVLMデータ（VQA等）を混ぜるco-fine-tuningにより、汎化性能を大幅に向上させた。</p>
+<h3 id="11-%E3%83%AD%E3%83%9C%E3%83%83%E3%83%88%E5%AD%A6%E7%BF%92%E3%81%AE%E3%82%B9%E3%82%B1%E3%83%BC%E3%83%AA%E3%83%B3%E3%82%B0-rt-1%E3%81%8C%E4%BD%9C%E3%81%A3%E3%81%9F%E5%9C%9F%E5%8F%B0">1.1 ロボット学習のスケーリング: RT-1が作った土台</h3>
+<p>RT-2が継承した<strong>ロボット側の系譜</strong>。行動の離散化、大規模デモデータ収集、言語条件付きマルチタスク学習といったプロトコルは、以下の研究を経てRT-1で確立された。事前学習済みVLMをバックボーンとして使っていない。</p>
+<p>※ 年はarXiv v1投稿日基準。</p>
+<table>
+<thead>
+<tr>
+<th>arXiv投稿日</th>
+<th>手法</th>
+<th>著者・所属</th>
+<th>役割</th>
+<th>核心的貢献</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2021-06-02</td>
+<td><strong>Decision Transformer</strong></td>
+<td>Chen et al. (UC Berkeley)</td>
+<td><strong>系列モデリングの転換</strong></td>
+<td>RLを「return-conditioned な系列生成」に再定式化（NeurIPS 2021）。評価はAtari/OpenAI Gym中心で、ロボット操作そのものが主題ではない</td>
+</tr>
+<tr>
+<td>2021-06-03</td>
+<td><strong>Trajectory Transformer</strong></td>
+<td>Janner et al. (UC Berkeley)</td>
+<td><strong>系列モデリング（計画寄り）</strong></td>
+<td>DTの翌日に投稿。同じく軌跡の系列モデリングだが、ビームサーチで「計画」する発想が中核（NeurIPS 2021 spotlight）。RT-1が両者を&quot;着想源&quot;として明示的に引用</td>
+</tr>
+<tr>
+<td>2021-09-24</td>
+<td><strong>CLIPort</strong></td>
+<td>Shridhar et al. (UW/NVIDIA)</td>
+<td><strong>VLM→ロボットの橋渡し</strong></td>
+<td>CLIPの意味理解（what）+ TransporterNetの空間精度（where）を融合。10シミュレーション+9実機タスクのマルチタスクポリシー。<strong>事前学習済みVLMの知識をロボット制御に転用する先駆</strong>（CoRL 2021）</td>
+</tr>
+<tr>
+<td>2022-02-04</td>
+<td>BC-Z</td>
+<td>Jang et al. (Google)</td>
+<td>言語条件付けBC</td>
+<td>100タスク・25,877エピソードでの言語条件付きゼロショット汎化。事前学習済みsentence encoder（USE系）で512次元埋め込み→FiLMでポリシーを条件づけ</td>
+</tr>
+<tr>
+<td>2022-03-23</td>
+<td><strong>R3M</strong></td>
+<td>Nair et al. (NYU/Meta)</td>
+<td><strong>視覚表現の事前学習</strong></td>
+<td>Ego4D動画から時間対照学習+動画言語アライメントでロボット操作用の視覚表現を学習。RT-2が先行研究として明示的に引用・比較</td>
+</tr>
+<tr>
+<td>2022-05-12</td>
+<td>Gato</td>
+<td>Reed et al. (DeepMind)</td>
+<td>マルチタスク統合</td>
+<td>604タスク（制御系596+VL/言語8）を1つのTransformerで学習。ただし実機ロボットタスクはRGB Stacking（Sawyer）の1タスクのみ。「汎用エージェント」の概念を提示</td>
+</tr>
+<tr>
+<td>2022-12-13</td>
+<td><strong>RT-1</strong></td>
+<td>Brohan et al. (Google)</td>
+<td><strong>スケーリングの実証</strong></td>
+<td><strong>13ロボット・13万エピソード・744タスク</strong>でTransformerを学習。スケーリングの有効性を実証。<strong>VLAの直接的な土台</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>なぜRT-1はVLAではないのか？</strong></p>
+<p>RT-1のアーキテクチャは論文本体で以下のように明示されている：</p>
+<pre class="hljs"><code><div>RT-1のアーキテクチャ（論文記載に基づく）:
+
+  画像(6枚) → ImageNet事前学習 EfficientNet-B3 ─┐
+                 ↑ FiLM層で言語条件づけ           │
+  言語指示 → Universal Sentence Encoder(512d) ───┘
+                                                   ↓
+                                   &quot;vision-language tokens&quot;
+                                   （言語で条件づけた視覚トークン）
+                                                   ↓
+                                             TokenLearner
+                                          （トークン数を圧縮）
+                                                   ↓
+                                    Decoder-only Transformer (8層)
+                                                   ↓
+                                          トークン化された行動
+</div></code></pre>
+<p>視覚はImageNet事前学習のEfficientNet-B3、言語はUSE埋め込みという<strong>別系統の事前学習器をFiLMで結合</strong>する設計。RT-1論文中で &quot;vision-language tokens&quot; という語を使うが、これは「言語で条件づけた視覚トークン」の意であり、Web規模で事前学習された統合VLMとは異なる。</p>
+<p>RT-2はRT-1の行動離散化プロトコルとデータを継承しつつ、モデル自体は既存VLM（PaLI-X 55B / PaLM-E 12B）を出発点とした。行動をVLMのテキストトークンとして表現し、ロボットデモとWebデータのco-fine-tuningでVLMのWeb知識がロボット制御に転移することを実証した。</p>
+</blockquote>
+<p><strong>RT-2が継承したもの（引用関係で検証済み）</strong>:</p>
+<p>RT-1論文はDT/TTを<strong>明示的に&quot;着想源&quot;と記述</strong>しており、系列モデリングの発想がRT-1の設計に直接影響している。RT-2はRT-1から以下を継承した：</p>
+<ul>
+<li><strong>行動離散化プロトコル</strong>: 各連続次元を256binに離散化してトークン列として出力する方式</li>
+<li><strong>デモデータセット</strong>: RT-1由来の13万エピソード（モバイルマニピュレータ、7スキル種別）</li>
+<li><strong>評価プロトコル</strong>: 同一環境での汎化評価。RT-2はRT-1の32%→62%（Unseen Average）と改善を報告</li>
+</ul>
+<p>一方、CLIPort・R3MはRT-2論文で先行研究として引用されており、「事前学習済みモデルの知識はロボットに転用できる」ことを示した前例として位置づけられている。</p>
+<hr>
+<h3 id="12-vlm%E3%81%AE%E6%88%90%E7%86%9F-rt-2%E3%81%AE%E3%83%A2%E3%83%87%E3%83%AB%E5%81%B4%E3%81%AE%E7%B3%BB%E8%AD%9C">1.2 VLMの成熟: RT-2のモデル側の系譜</h3>
+<p>RT-2が<strong>モデルの出発点</strong>としたのは、PaLI-X（55B）とPaLM-E（12B）という2つの既存VLMである。RT-2は「新しいパラメータを追加せずに、既存VLMから行動を出力させる」と明記しており、VLMの成熟がVLA実現の前提条件だった。</p>
+<p>特にPaLM-E（2023.03、RT-2より4か月先行）は、連続センサ入力をLLMのトークン空間に注入する「Embodied MLLM」として、RT-2の概念的先行者でもある。RT-2はPaLM-Eの「multimodal sentences」という枠組みを参照しつつ、出力を高レベル計画ではなく低レベル行動に拡張した。</p>
+<p>VLAの性能は (1) Vision Encoderの視覚表現の質、(2) LLMの表現力、(3) 両者の接続方法 に強く依存する。</p>
+<h4 id="vision-encoder%E3%81%AE%E7%B3%BB%E8%AD%9C">Vision Encoderの系譜</h4>
+<p>VLAが使うVision Encoderは単純なViTではなく、学習方法の違いで複数の系統がある。</p>
+<table>
+<thead>
+<tr>
+<th>年</th>
+<th>モデル</th>
+<th>著者・所属</th>
+<th>学習方法</th>
+<th>核心的貢献</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2020</td>
+<td><strong>ViT</strong></td>
+<td>Dosovitskiy et al. (Google Brain)</td>
+<td>教師あり分類</td>
+<td>画像をパッチ→トークンでTransformer処理。視覚表現のパラダイムシフト（arXiv: 2020-10、ICLR 2021採択）</td>
+</tr>
+<tr>
+<td>2021</td>
+<td><strong>CLIP ViT</strong></td>
+<td>Radford et al. (OpenAI)</td>
+<td>対照学習（softmax）</td>
+<td>4億画像-テキストペアで対照学習。視覚-言語共通埋め込みの確立（arXiv: 2021-02-26）</td>
+</tr>
+<tr>
+<td>2023</td>
+<td><strong>DINOv2</strong></td>
+<td>Oquab et al. (Meta)</td>
+<td><strong>自己教師あり学習</strong></td>
+<td>言語ラベルなしで画像だけから空間的・局所的な視覚特徴を学習。<strong>低レベルの空間情報（把持点・物体境界等）に強い</strong></td>
+</tr>
+<tr>
+<td>2023</td>
+<td><strong>SigLIP</strong></td>
+<td>Zhai et al. (Google)</td>
+<td>対照学習（<strong>sigmoid</strong>）</td>
+<td>CLIPのsoftmax正規化をpairwise sigmoid lossに変更。バッチサイズに依存しにくく、fine-tuneしても視覚表現が崩れにくい（arXiv: 2023-03-27）</td>
+</tr>
+<tr>
+<td>2024</td>
+<td><strong>SigLIP2</strong></td>
+<td>Google</td>
+<td>対照学習 + 自己教師あり + captioning</td>
+<td>SigLIPに自己教師ありloss・captioningベース事前学習・オンラインデータキュレーションを統合。汎用性がさらに向上</td>
+</tr>
+</tbody>
+</table>
+<p><strong>VLAでSigLIPが主流になりつつある理由</strong>:</p>
+<ul>
+<li>PaLI-3がSigLIP事前学習ViTと分類事前学習ViTを比較し、マルチモーダル（特にlocalizationや視覚的テキスト理解）でSigLIPが優位と報告</li>
+<li>PaliGemma / PaliGemma 2がSigLIP-So400mを標準採用 → π0, SpatialVLAに直結</li>
+<li>fine-tune時にsoftmax正規化（CLIPの弱点）が不要なため、ロボットデータでの追加学習で表現が崩れにくい</li>
+</ul>
+<p><strong>OpenVLAがSigLIPとDINOv2を併用する理由</strong>:</p>
+<ul>
+<li>SigLIP = <strong>高レベルの意味情報</strong>（「これはりんごだ」）</li>
+<li>DINOv2 = <strong>低レベルの空間情報</strong>（「ここに掴める面がある」）</li>
+<li>Prismatic VLMsの研究で、この2つのfused backbonesが設計全体の性能を押し上げることを確認</li>
+</ul>
+<h4 id="vlm%E3%81%AE%E7%B3%BB%E8%AD%9Cvla%E3%81%AE%E3%83%90%E3%83%83%E3%82%AF%E3%83%9C%E3%83%BC%E3%83%B3">VLMの系譜（VLAのバックボーン）</h4>
+<p>VLMには「Vision EncoderとLLMをどう結ぶか」で複数のアーキテクチャパターンがある。</p>
+<h5 id="%E3%82%A2%E3%83%BC%E3%82%AD%E3%83%86%E3%82%AF%E3%83%81%E3%83%A3%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3">アーキテクチャパターン</h5>
+<table>
+<thead>
+<tr>
+<th>パターン</th>
+<th>代表</th>
+<th>構造</th>
+<th>VLAとの相性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dual Encoder型</td>
+<td>CLIP</td>
+<td>画像とテキストを別々にエンコード→共通空間</td>
+<td>△ 生成タスクに弱い</td>
+</tr>
+<tr>
+<td>Encoder-Decoder型</td>
+<td>PaLI系</td>
+<td>Vision Encoder + テキストDecoder</td>
+<td>○ 生成可能だがやや古い</td>
+</tr>
+<tr>
+<td><strong>Decoder-only + Visual Tokens型</strong></td>
+<td>LLaVA, PaliGemma</td>
+<td>Vision EncoderのトークンをLLMに入力</td>
+<td><strong>◎ VLAで主流</strong></td>
+</tr>
+<tr>
+<td>Q-Former接続型</td>
+<td>BLIP-2</td>
+<td>学習可能なクエリで視覚情報を圧縮→LLMへ</td>
+<td>△ 圧縮で情報が落ちうる</td>
+</tr>
+<tr>
+<td>統合VLM型</td>
+<td>Qwen-VL</td>
+<td>Vision Encoder + LLMを最初から統合設計</td>
+<td>◎ 設計の自由度が高い</td>
+</tr>
+</tbody>
+</table>
+<p><strong>VLAでDecoder-only型が有利な理由</strong>:</p>
+<ol>
+<li>RT-2が示したように、行動をテキストトークンと同形式にすると学習目標が「次トークン予測」に自然に落ちる → Decoder-only LMの学習形式と整合</li>
+<li>VLM側（Llama 2, Gemma等）のスケールや指示追従能力をそのまま制御に転用しやすい</li>
+<li>VLMを「特徴抽出器」としても「生成器」としても扱える柔軟性がある</li>
+</ol>
+<h5 id="pali%E7%B3%BB%E3%81%AE%E7%B3%BB%E8%AD%9Cgoogle-%E2%86%92-vla%E3%81%AE%E4%B8%BB%E8%A6%81%E3%83%90%E3%83%83%E3%82%AF%E3%83%9C%E3%83%BC%E3%83%B3">PaLI系の系譜（Google → VLAの主要バックボーン）</h5>
+<pre class="hljs"><code><div>PaLI (2022.09)          PaLI-X (2023.05)         PaLI-3 (2023)
+ViT-e(4B) + mT5    →   ViT-22B + 大規模化    →  SigLIP ViTが優位と実証
+                         ↓ RT-2のバックボーン
+                                                      ↓
+                                                 PaliGemma (2024.07)
+                                                 SigLIP-So400m + Gemma-2B
+                                                 軽量・オープン・転移重視
+                                                 ↓ π0 / π0-FASTのバックボーン
+                                                      ↓
+                                                 PaliGemma 2 (2024.12)
+                                                 SigLIP-So400m + Gemma 2 (2B〜27B)
+                                                 複数解像度(224/448/896)で段階学習
+                                                 ↓ SpatialVLAのバックボーン
+</div></code></pre>
+<p><strong>要点</strong>: 「PaLI/PaLI-X（巨大・専用）→ PaliGemma（小型・オープン・転移重視）→ PaliGemma 2（多様なサイズ&amp;解像度）」という、実運用・研究展開のしやすさに寄った分岐。</p>
+<h5 id="%E3%81%9D%E3%81%AE%E4%BB%96%E3%81%AEvla%E9%96%A2%E9%80%A3vlm">その他のVLA関連VLM</h5>
+<table>
+<thead>
+<tr>
+<th>年</th>
+<th>モデル</th>
+<th>著者・所属</th>
+<th>核心的貢献</th>
+<th>VLAとの関係</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2022</td>
+<td>Flamingo</td>
+<td>Alayrac et al. (DeepMind)</td>
+<td>凍結VisionEncoder + LLMをPerceiver Resamplerで接続。Few-shot VLMのテンプレート確立</td>
+<td>アーキテクチャパターンの先駆</td>
+</tr>
+<tr>
+<td>2023</td>
+<td><strong>PaLM-E</strong></td>
+<td>Driess et al. (Google)</td>
+<td>連続センサ入力をLLM入力に混在させるEmbodied MLLM。<strong>RT-2のもう一つのバックボーン</strong></td>
+<td>VLMだけでなくEmbodied MLLMもVLAの背骨になりうることを実証</td>
+</tr>
+<tr>
+<td>2023</td>
+<td><strong>LLaVA</strong></td>
+<td>Liu et al. (UW/Microsoft)</td>
+<td>CLIP ViT + Vicuna を線形射影で接続。シンプルなアーキテクチャでGPT-4Vに迫る性能</td>
+<td>Decoder-only + Visual Tokens型の代表。VLA設計の参照点</td>
+</tr>
+<tr>
+<td>2023</td>
+<td>BLIP-2</td>
+<td>Li et al. (Salesforce)</td>
+<td>Q-Formerで凍結エンコーダとLLMを効率的に橋渡し</td>
+<td>Q-Former型の代表</td>
+</tr>
+<tr>
+<td>2024</td>
+<td><strong>Prismatic VLMs</strong></td>
+<td>Karamcheti et al. (ICML 2024)</td>
+<td>VLMの設計軸を系統評価。SigLIP + DINOv2のfused backbonesが有効と実証</td>
+<td><strong>OpenVLAのバックボーン（Prismatic-7B）</strong></td>
+</tr>
+<tr>
+<td>2023–</td>
+<td><strong>Qwen-VL系</strong></td>
+<td>Alibaba</td>
+<td>動的解像度・マルチモーダルRoPE等を導入したVLMシリーズ（Qwen-VL → Qwen2-VL → Qwen3-VL）</td>
+<td><strong>VLANeXtの最終設定がQwen3-VL 2Bを採用</strong>。CoA-VLAのDi-VLAもQwen2-VLを統合</td>
+</tr>
+<tr>
+<td>2023–</td>
+<td><strong>InternVL</strong></td>
+<td>Shanghai AI Lab</td>
+<td>6B規模のvision foundation modelをスケール。LLMと整合</td>
+<td>VLA-Critic（InternVL上に報酬/批評を統合）で利用</td>
+</tr>
+</tbody>
+</table>
+<h4 id="llm%E3%81%AE%E3%83%AD%E3%83%9C%E3%83%83%E3%83%88%E5%BF%9C%E7%94%A8vla%E3%81%A8%E3%81%AF%E7%95%B0%E3%81%AA%E3%82%8B%E3%82%A2%E3%83%97%E3%83%AD%E3%83%BC%E3%83%81">LLMのロボット応用（VLAとは異なるアプローチ）</h4>
+<p>VLMをバックボーンに使うのではなく、LLMを「ロボットの知恵袋」として外部利用する試み。VLAとは別系統だが、「言語モデルの知識がロボットに有用である」ことを示した重要な前例。</p>
+<table>
+<thead>
+<tr>
+<th>年</th>
+<th>手法</th>
+<th>著者・所属</th>
+<th>核心的貢献</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2022</td>
+<td><strong>SayCan</strong></td>
+<td>Ahn et al. (Google)</td>
+<td>LLMがプラン提案、value functionが実行可能性をスコアリング。<strong>LLM知識のロボットへの接地（grounding）</strong>。ただし行動生成は別のポリシーが担当</td>
+</tr>
+<tr>
+<td>2023</td>
+<td>Code as Policies</td>
+<td>Liang et al. (Google)</td>
+<td>LLMにロボット制御コード（Python）を直接生成させる。行動値ではなくコードを出力</td>
+</tr>
+</tbody>
+</table>
+<h4 id="%E3%81%BE%E3%81%A8%E3%82%81-2%E3%81%A4%E3%81%AE%E7%B3%BB%E8%AD%9C%E3%81%8Crt-2%E3%81%A7%E5%90%88%E6%88%90%E3%81%95%E3%82%8C%E3%81%9F">まとめ: 2つの系譜がRT-2で合成された</h4>
+<p>2023年までにVLMは「Vision Encoderの高品質化（SigLIP）」「Decoder-onlyアーキテクチャの確立」「PaLI系のスケーリング」「PaLM-Eによる身体性タスクへの接続」を通じて十分に成熟した。RT-2はこの成熟したVLM（PaLI-X / PaLM-E）をモデルの出発点とし、RT-1が確立したロボット学習プロトコル（行動離散化・大規模デモデータ）を接続することで、VLAを実現した。SayCan/Code as Policiesは「LLMの知識はロボットに役立つ」という確信を与えた前例。</p>
+<h3 id="vla%E3%81%AE%E8%AA%95%E7%94%9F%E5%9B%B3">VLAの誕生図</h3>
+<pre class="hljs"><code><div>  ■ ロボット学習プロトコル/データ          ■ Web規模VLM
+  ──────────────────────────            ──────────────
+  DT/TT (2021)                          ViT (2020)
+  「Transformerで行動系列を生成」         CLIP (2021) → SigLIP (2023)
+          │ ※RT-1が&quot;着想源&quot;と明記        PaLI (2022) → PaLI-X (2023)
+          ↓                                    │
+  ┌─────────────────────┐              PaLM-E (2023.03)
+  │  RT-1 (2022.12)     │              Embodied MLLM
+  │  行動離散化(256bin)  │              「連続センサ入力をLLMへ注入」
+  │  13万ep / 744タスク  │              &quot;multimodal sentences&quot;
+  │  ※VLAではない        │                    │
+  └────────┬────────────┘                    │
+           │                                  │
+           │  プロトコル/データ                │  モデル/重み
+           │  を継承                           │  を出発点に
+           │                                  │
+           └──────────┬───────────────────────┘
+                      │
+                      ↓  action tokenization
+  ┌──────────────────────────────────────────────┐
+  │           RT-2 (2023.07) = VLA 誕生           │
+  │                                                │
+  │  ・行動をVLMのテキストトークンとして表現        │
+  │  ・ロボットデモ + Web VLMデータのco-fine-tune  │
+  │  ・「VLA」というカテゴリを定義                  │
+  │  ・バックボーン: PaLI-X 55B / PaLM-E 12B      │
+  │  ・汎化: RT-1の32% → RT-2の62% (Unseen Avg)   │
+  └──────────────────────────────────────────────┘
+</div></code></pre>
+<p><strong>読み方</strong>: RT-2は「RT-1の改良版」ではなく、<strong>ロボット学習プロトコル/データ（RT-1起点）</strong> と <strong>Web規模VLM（PaLI-X/PaLM-E起点）</strong> の合成として生まれた。RT-2の核心的イノベーションは、両者を繋ぐ「action tokenization」— 行動をVLMのトークン列として表現し、同一の枠組みで学習・生成させたこと。</p>
+<hr>
+
+</body>
+</html>
